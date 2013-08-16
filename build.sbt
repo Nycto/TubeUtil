@@ -11,6 +11,9 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "com.roundeights" %% "skene" % "0.1"
+    "com.roundeights" %% "skene" % "0.1",
+    "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
+    "org.specs2" %% "specs2" % "1.13" % "test",
+    "org.mockito" % "mockito-all" % "1.9.5" % "test"
 )
 
