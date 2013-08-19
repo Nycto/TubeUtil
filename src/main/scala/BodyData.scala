@@ -46,7 +46,7 @@ class BodyDataProvider extends Provider[BodyData] {
             = next.success(new BodyData { override def json = elem.asObject })
 
         try {
-            req.getContentType match {
+            req.headers.contentType match {
                 case Some("application/x-www-form-urlencoded")
                     => success( nElement( QueryString( req.bodyStr ).toMap ) )
 

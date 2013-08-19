@@ -12,11 +12,18 @@ class AssetHandlerTest extends Specification with Mockito {
     // A shared renderable instance
     val renderable = mock[Renderable]
 
+    // Generates a mock Headers object
+    def mockHeaders ( ifModified: Option[Date] ) = {
+        val headers = mock[Headers]
+        headers.ifModifiedSince returns ifModified
+        headers
+    }
+
     // Generates a mock request
     def mockRequest ( path: String, ifModified: Option[Date] ) = {
         val request = mock[Request]
         request.url returns URL("http://example.com/" + path)
-        request.getDateHeader("If-Modified-Since") returns ifModified
+        request.headers returns mockHeaders(ifModified)
         request.params returns Map[String, String]()
         request
     }
@@ -66,7 +73,7 @@ class AssetHandlerTest extends Specification with Mockito {
 
         "Pull from the 'asset' parameter when defined" in {
             val request = mock[Request]
-            request.getDateHeader("If-Modified-Since") returns None
+            request.headers returns mockHeaders(None)
             request.params returns Map[String, String]( "asset" -> "path.js" )
 
             val response = mock[Response]

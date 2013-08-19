@@ -25,7 +25,7 @@ extends Handler {
 
     /** Determines if a resource is in the client's cache */
     private def isInCache( request: Request, asset: Asset.Reader ): Boolean = {
-        request.getDateHeader("If-Modified-Since").map(
+        request.headers.ifModifiedSince.map(
             cached => asset.modified.getTime <= cached.getTime
         ).getOrElse( false )
     }
