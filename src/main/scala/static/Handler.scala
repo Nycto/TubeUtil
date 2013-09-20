@@ -48,10 +48,12 @@ extends Handler {
             }
 
             case Some(reader) => {
-                response.header(
-                    Response.Header.CacheControl(),
-                    "max-age=31560000, must-revalidate, public"
-                )
+                if ( asset.isVersioned ) {
+                    response.header(
+                        Response.Header.CacheControl(),
+                        "max-age=31560000, must-revalidate, public"
+                    )
+                }
                 response.header(Response.Header.LastModified(), reader.modified)
                 reader.mimeType.map( mime => response.contentType(mime) )
                 response.content( reader.renderable )

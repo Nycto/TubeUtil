@@ -113,6 +113,12 @@ class Asset( rawPath: String ) extends Equals {
         Asset( Asset.ext( path ).map( base + _ ).getOrElse( base ) )
     }
 
+    /** Returns whether this asset has a hash attached to it */
+    def isVersioned: Boolean = {
+        val stripped = Asset.stripExt( path )
+        stripped != Asset.stripExt( stripped )
+    }
+
     /** Returns the mime type of this asset based on the file extension */
     def mimeType: Option[ContentType] = {
         ext.flatMap( _.toLowerCase match {

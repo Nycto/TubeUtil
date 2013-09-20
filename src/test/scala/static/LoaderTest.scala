@@ -50,23 +50,42 @@ class AssetLoaderTest extends Specification with Mockito {
 
         "Generate a URL with a hash" in {
 
-            val loader = new AssetLoader( "asset", hasher, (asset: Asset) => {
-                asset must_== Asset("path/file.js")
-                Some(reader)
-            })
+            val loader = new AssetLoader(
+                "asset", true, hasher,
+                (asset: Asset) => {
+                    asset must_== Asset("path/file.js")
+                    Some(reader)
+                }
+            )
 
             loader.url("/path/file.js") must_==
                 Some("/asset/path/file.ABCDEFGH.js")
         }
 
+        "Generate a URL without a hash when they are disabled" in {
+            val loader = new AssetLoader(
+                "asset", false, hasher,
+                (asset: Asset) => {
+                    asset must_== Asset("path/file.js")
+                    Some(reader)
+                }
+            )
+
+            loader.url("/path/file.js") must_== Some("/asset/path/file.js")
+        }
+
         "Normalize the prefix" in {
-            new AssetLoader( "/asset/./path/../", hasher, _ => Some(reader) )
-                .url("/path/file.js") must_==
+            val loader = new AssetLoader(
+                "/asset/./path/../", true,
+                hasher, _ => Some(reader)
+            )
+
+            loader.url("/path/file.js") must_==
                 Some("/asset/path/file.ABCDEFGH.js")
         }
 
         "Return None if the file can't be found" in {
-            new AssetLoader("asset", mock[HashCache], _ => None)
+            new AssetLoader("asset", true, mock[HashCache], _ => None)
                 .url("/path/file.js") must_== None
         }
 

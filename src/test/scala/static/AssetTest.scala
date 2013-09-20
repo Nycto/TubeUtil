@@ -50,6 +50,13 @@ class AssetTest extends Specification {
                 Asset("fake.out/file.js")
         }
 
+        "Return whether it has a version" in {
+            Asset("test.js").isVersioned must_== false
+            Asset("test").isVersioned must_== false
+            Asset("test.abc.js").isVersioned must_== true
+            Asset("fake.out/file.js").isVersioned must_== false
+        }
+
         "Return a mime type" in {
             Asset("test.html").mimeType must_== Some(ContentType.Html())
             Asset("test.css").mimeType must_== Some(ContentType.Css())

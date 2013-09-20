@@ -38,17 +38,32 @@ object AssetLoader {
 
     /** Constructs a new instance that searches for assets in a root dir */
     def fromDir
-        ( root: File, prefix: String )
+        ( root: File, prefix: String, addHashes: Boolean )
         ( implicit context: ExecutionContext )
     : AssetLoader = new AssetLoader(
-        prefix, HashCache(), new DirFinder(new File(root, prefix))
+        prefix, addHashes,
+        HashCache(),
+        new DirFinder(new File(root, prefix))
     )
+
+    /** Constructs a new instance that searches for assets in a root dir */
+    def fromDir
+        ( root: String, prefix: String, addHashes: Boolean )
+        ( implicit context: ExecutionContext )
+    : AssetLoader = fromDir( new File(root), prefix )
+
+
+    /** Constructs a new instance that searches for assets in a root dir */
+    def fromDir
+        ( root: File, prefix: String )
+        ( implicit context: ExecutionContext )
+    : AssetLoader = fromDir( root, prefix, true )
 
     /** Constructs a new instance that searches for assets in a root dir */
     def fromDir
         ( root: String, prefix: String )
         ( implicit context: ExecutionContext )
-    : AssetLoader = fromDir( new File(root), prefix )
+    : AssetLoader = fromDir( root, prefix, true )
 
 
     /** Generates a jar based asset finder */
@@ -85,15 +100,20 @@ object AssetLoader {
 
     /** Constructs a new instance that searches for assets */
     def fromJar
-        ( clazz: Class[_], prefix: String )
+        ( clazz: Class[_], prefix: String, addHashes: Boolean = true )
         ( implicit context: ExecutionContext )
-    = new AssetLoader( prefix, HashCache(), new JarFinder(clazz, prefix) )
+    = new AssetLoader(
+        prefix, addHashes,
+        HashCache(),
+        new JarFinder(clazz, prefix)
+    )
 
 }
 
 /** Builds the URLs and HTML needed to load an asset */
 class AssetLoader (
     pathPrefix: String,
+    private val addHashes: Boolean,
     private val hash: HashCache,
     private val finder: (Asset) => Option[Asset.Reader]
 )(
@@ -106,14 +126,14 @@ class AssetLoader (
     /** The prefix to attach to each asset */
     private val prefix = {
         val canonical = Asset.canonicalize( pathPrefix )
-        if ( canonical == "" ) None else Some(canonical)
+        if ( canonical == "" ) canonical else "/" + canonical
     }
 
     /** Returns a companion Handler */
     def handler: Handler with Matcher = {
         Matcher.and(
             Matcher.method( Request.Method.GET() ),
-            Matcher.path( prefix.map( "/" + _ ).getOrElse("") + "/::asset" )
+            Matcher.path( prefix + "/::asset" )
         ).handle(
             new AssetHandler( finder )
         )
@@ -135,12 +155,17 @@ class AssetLoader (
     /** Returns the relative URL for an asset */
     def url ( path: String ): Option[String] = {
         val asset = Asset(path)
-        finder( asset ).map( hash.hash _ ).map(sha1 => "%s/%s.%s%s".format(
-            prefix.map( "/" + _ ).getOrElse(""),
-            asset.stripExt,
-            sha1.take(8),
-            asset.ext.getOrElse("")
-        ))
+        if ( addHashes ) {
+            finder( asset ).map( hash.hash _ ).map(sha1 => "%s/%s.%s%s".format(
+                prefix,
+                asset.stripExt,
+                sha1.take(8),
+                asset.ext.getOrElse("")
+            ))
+        }
+        else {
+            finder( asset ).map( _ => prefix + "/" + asset.path )
+        }
     }
 
     /** Formats a list of assets */
