@@ -66,6 +66,9 @@ class AssetLoader (
         implicit context: ExecutionContext
     ) = this( pathPrefix, addHashes, hash, AssetFinder(finder) )
 
+    /** Returns a debug version of this loader */
+    def debug = new AssetLoader(pathPrefix, addHashes, hash, finder.debug)
+
     /** {@inheritDoc} */
     override def toString = "AssetLoader(%s, %s)".format(pathPrefix, finder)
 

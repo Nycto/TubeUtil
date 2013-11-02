@@ -18,17 +18,26 @@ object AssetFinder {
     }
 
     /** Finds an asset within the given directory */
-    class DirFinder( private val root: File ) extends AssetFinder {
+    class DirFinder(
+        private val root: File,
+        private val isDebug: Boolean = false
+    ) extends AssetFinder {
 
         /** Create a dir finder from a string path */
-        def this ( root: String ) = this( new File( root ) )
+        def this ( root: String ) = this( new File( root ), false )
 
         /** {@inheritDoc} */
-        override def toString = "AssetFinder(%s)".format(root)
+        override def toString
+            = "AssetFinder(%s%s)".format(root, if (isDebug) ", debug" else "")
 
         /** {@inheritDoc} */
         override def apply(needle: Asset): Option[Asset.Reader] = {
             val path = new File( root, needle.path )
+
+            if ( isDebug ) {
+                println("DirFinder: Searched for %s in %s".format(needle, path))
+            }
+
             if ( !path.exists || !path.isFile || !path.canRead ) {
                 None
             }
@@ -40,12 +49,16 @@ object AssetFinder {
                 })
             }
         }
+
+        /** {@inheritDoc} */
+        override def debug = new DirFinder(root, true)
     }
 
     /** Generates a jar based asset finder */
     class JarFinder(
         clazz: Class[_],
-        private val subdir: String
+        private val subdir: String,
+        private val isDebug: Boolean = false
     ) extends AssetFinder {
 
         /** The class loader to use for finding resources */
@@ -59,11 +72,18 @@ object AssetFinder {
         private val jarModified = new Date( new File(jar).lastModified )
 
         /** {@inheritDoc} */
-        override def toString = "AssetFinder(%s:%s)".format(jar, subdir)
+        override def toString = "AssetFinder(%s:%s)".format(
+            jar, subdir, if (isDebug) ", debug" else ""
+        )
 
         /** {@inheritDoc} */
         override def apply(needle: Asset): Option[Asset.Reader] = {
             val path = needle.inSubdir( subdir )
+
+            if ( isDebug ) {
+                println("JarFinder: Searched for %s in %s".format(needle, path))
+            }
+
             Option( loader.getResource( path ) ).map( _ => {
                 new Asset.Reader {
                     override def asset = needle
@@ -72,6 +92,9 @@ object AssetFinder {
                 }
             })
         }
+
+        /** {@inheritDoc} */
+        override def debug = new JarFinder(clazz, subdir, true)
     }
 
 }
@@ -81,5 +104,8 @@ trait AssetFinder {
 
     /** Locates the given asset */
     def apply(needle: Asset): Option[Asset.Reader]
+
+    /** Returns a debug version of this asset */
+    def debug: AssetFinder
 }
 
