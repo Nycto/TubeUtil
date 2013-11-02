@@ -8,39 +8,6 @@ import java.io.File
 
 class AssetLoaderTest extends Specification with Mockito {
 
-    "A Dir Finder" should {
-
-        val finder = new AssetLoader.DirFinder("src/test/resources")
-
-        "Find files that exist" in {
-            finder( Asset("static/test.txt") ) must beLike {
-                case Some(reader) => reader.content must_== "Some Content\n"
-            }
-        }
-
-        "Reject files that don't exist" in {
-            finder( Asset("static/nothing.txt") ) must_== None
-        }
-    }
-
-    "A Jar Finder" should {
-
-        val finder = new AssetLoader.JarFinder(
-            classOf[AssetLoaderTest], "static"
-        )
-
-        "Find files that exist" in {
-            finder( Asset("test.txt") ) must beLike {
-                case Some(reader) => reader.content must_== "Some Content\n"
-            }
-        }
-
-        "Reject files that don't exist" in {
-            finder( Asset("nothing.txt") ) must_== None
-        }
-    }
-
-
     val reader = mock[Asset.Reader]
 
     val hasher = mock[HashCache]

@@ -9,33 +9,6 @@ import com.roundeights.skene.{Matcher, Request, Response, Handler}
 /** @see AssetLoader */
 object AssetLoader {
 
-    /** Finds an asset within the given directory */
-    class DirFinder(
-        private val root: File
-    ) extends Function1[Asset, Option[Asset.Reader]] {
-
-        /** Create a dir finder from a string path */
-        def this ( root: String ) = this( new File( root ) )
-
-        /** {@inheritDoc} */
-        override def toString = "AssetFinder(%s)".format(root)
-
-        /** {@inheritDoc} */
-        override def apply(needle: Asset): Option[Asset.Reader] = {
-            val path = new File( root, needle.path )
-            if ( !path.exists || !path.isFile || !path.canRead ) {
-                None
-            }
-            else {
-                Some( new Asset.Reader {
-                    override def asset = needle
-                    override def stream = new FileInputStream(path)
-                    override def modified = new Date(path.lastModified)
-                })
-            }
-        }
-    }
-
     /** Constructs a new instance that searches for assets in a root dir */
     def fromDir
         ( root: File, prefix: String, addHashes: Boolean )
@@ -43,7 +16,7 @@ object AssetLoader {
     : AssetLoader = new AssetLoader(
         prefix, addHashes,
         HashCache(),
-        new DirFinder(new File(root, prefix))
+        new AssetFinder.DirFinder(new File(root, prefix))
     )
 
     /** Constructs a new instance that searches for assets in a root dir */
@@ -51,7 +24,6 @@ object AssetLoader {
         ( root: String, prefix: String, addHashes: Boolean )
         ( implicit context: ExecutionContext )
     : AssetLoader = fromDir( new File(root), prefix )
-
 
     /** Constructs a new instance that searches for assets in a root dir */
     def fromDir
@@ -65,39 +37,6 @@ object AssetLoader {
         ( implicit context: ExecutionContext )
     : AssetLoader = fromDir( root, prefix, true )
 
-
-    /** Generates a jar based asset finder */
-    class JarFinder(
-        clazz: Class[_],
-        private val subdir: String
-    ) extends Function1[Asset, Option[Asset.Reader]] {
-
-        /** The class loader to use for finding resources */
-        private val loader = clazz.getClassLoader
-
-        /** The jar file assets are being loaded from */
-        private val jar
-            = clazz.getProtectionDomain.getCodeSource.getLocation.toURI
-
-        /** The modification date of the jar file */
-        private val jarModified = new Date( new File(jar).lastModified )
-
-        /** {@inheritDoc} */
-        override def toString = "AssetFinder(%s:%s)".format(jar, subdir)
-
-        /** {@inheritDoc} */
-        override def apply(needle: Asset): Option[Asset.Reader] = {
-            val path = needle.inSubdir( subdir )
-            Option( loader.getResource( path ) ).map( _ => {
-                new Asset.Reader {
-                    override def asset = needle
-                    override def stream = loader.getResourceAsStream(path)
-                    override def modified = jarModified
-                }
-            })
-        }
-    }
-
     /** Constructs a new instance that searches for assets */
     def fromJar
         ( clazz: Class[_], prefix: String, addHashes: Boolean = true )
@@ -105,9 +44,8 @@ object AssetLoader {
     = new AssetLoader(
         prefix, addHashes,
         HashCache(),
-        new JarFinder(clazz, prefix)
+        new AssetFinder.JarFinder(clazz, prefix)
     )
-
 }
 
 /** Builds the URLs and HTML needed to load an asset */
@@ -115,10 +53,18 @@ class AssetLoader (
     pathPrefix: String,
     private val addHashes: Boolean,
     private val hash: HashCache,
-    private val finder: (Asset) => Option[Asset.Reader]
+    private val finder: AssetFinder
 )(
     implicit context: ExecutionContext
 ) {
+
+    /** Creates a new AssetLoader from a callback */
+    def this (
+        pathPrefix: String, addHashes: Boolean,
+        hash: HashCache, finder: (Asset) => Option[Asset.Reader]
+    )(
+        implicit context: ExecutionContext
+    ) = this( pathPrefix, addHashes, hash, AssetFinder(finder) )
 
     /** {@inheritDoc} */
     override def toString = "AssetLoader(%s, %s)".format(pathPrefix, finder)

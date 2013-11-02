@@ -8,9 +8,15 @@ import scala.concurrent.ExecutionContext
  * Dispenses an asset to the client
  */
 class AssetHandler
-    ( private val finder: (Asset) => Option[Asset.Reader] )
+    ( private val finder: AssetFinder )
     ( implicit context: ExecutionContext )
 extends Handler {
+
+    /** Creates a new AssetLoader from a callback */
+    def this
+        ( finder: (Asset) => Option[Asset.Reader] )
+        ( implicit context: ExecutionContext ) =
+        this( AssetFinder(finder) )
 
     /** {@inheritDoc} */
     override def toString = "AssetHandler(%s)".format(finder)
