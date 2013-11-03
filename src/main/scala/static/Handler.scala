@@ -23,7 +23,7 @@ extends Handler {
 
     /** Finds an asset */
     private def find ( asset: Asset ): Option[Asset.Reader]
-        = finder(asset.unversioned).orElse(finder(asset))
+        = if (asset.isVersioned) finder(asset) else finder(asset.unversioned)
 
     /** Pulls an asset from the URL in a request */
     private def extract ( req: Request ): Option[Asset]
