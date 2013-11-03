@@ -26,7 +26,9 @@ object Templater {
     )
 
     /** A template finder that looks in a directory */
-    def inDir ( root: File ): Finder = new FileTemplateLoader( root )
+    def inDir ( root: File ): Finder = new FileTemplateLoader( root ) {
+        override def toString = "FileLoader(%s)".format(root)
+    }
 
     /** Looks for a template using a class loader */
     def inJar( clazz: Class[_], subdir: String ): Finder = {
@@ -34,6 +36,9 @@ object Templater {
             = subdir.dropWhile(_ == '/').reverse.dropWhile(_ == '/').reverse
 
         new URLTemplateLoader {
+            override def toString = "JarLoader(%s, resources/%s/)".format(
+                clazz.getName, cleanSubdir)
+
             override def getResource( path: String ) = {
                 clazz.getResource(
                     "/" + cleanSubdir + "/" + path.dropWhile(_ == '/')
@@ -86,6 +91,9 @@ class BaseTemplater (
     private val finder: Templater.Finder,
     private val handlers: Map[String,(String) => String] = Map()
 ) extends Templater {
+
+    /** {@inheritDoc} */
+    override def toString = "Templater(%s, %s)".format(finder, handlers.keys)
 
     /** Templating engine */
     private lazy val engine = {
