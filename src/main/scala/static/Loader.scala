@@ -23,7 +23,7 @@ object AssetLoader {
     def fromDir
         ( root: String, prefix: String, addHashes: Boolean )
         ( implicit context: ExecutionContext )
-    : AssetLoader = fromDir( new File(root), prefix )
+    : AssetLoader = fromDir( new File(root), prefix, addHashes )
 
     /** Constructs a new instance that searches for assets in a root dir */
     def fromDir
