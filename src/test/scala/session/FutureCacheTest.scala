@@ -73,6 +73,15 @@ class FutureCacheTest extends Specification with Mockito {
             await( cache.get(123){ producer() } ) must_== "Result"
         }
 
+        "Allow values to be explicitly set" in {
+            val cache = new FutureCache[Int, String]
+            cache.set( 456, "First" )
+            await( cache.get(456){ throw new Exception } ) must_== "First"
+
+            cache.set( 456, "Second" )
+            await( cache.get(456){ throw new Exception } ) must_== "Second"
+        }
+
     }
 }
 

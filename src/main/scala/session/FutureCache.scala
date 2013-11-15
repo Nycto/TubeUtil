@@ -35,5 +35,21 @@ private class FutureCache[K,V] {
         }
     }
 
+    /** Sets a value in this cache */
+    def set ( key: K, value: V ): Unit = {
+        @tailrec def store: Unit = cache.get( key ) match {
+            case null => {
+                if ( cache.putIfAbsent(key, Future.successful(value)) != null )
+                    store
+            }
+            case cached => {
+                if ( !cache.replace(key, cached, Future.successful(value)) )
+                    store
+            }
+        }
+
+        store
+    }
+
 }
 
