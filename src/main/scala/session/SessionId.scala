@@ -6,13 +6,17 @@ import java.security.SecureRandom
 object SessionId {
 
     /** The size that the sequence and token strings should be */
-    private[SessionId] val size = 32
+    private val size = 32
 
     /** The list of characters to use for generating a random string */
     private val chars = "0123456789abcdefghijklmnopqrstuvwxyz".toArray
 
     /** The list of valid characters presented as a set */
-    private[SessionId] val charSet = chars.toSet
+    private val charSet = chars.toSet
+
+    /** Validates session IDs and sequence IDs */
+    private[SessionId] def validate ( part: String )
+        = part.length == size && part.toSet.diff(charSet).size == 0
 
     /** Generates a random string of the given length. */
     def randomStr ( length: Int ): String = {
@@ -34,6 +38,17 @@ object SessionId {
 
     /** Constructs a brand new sequence Id and token */
     def apply(): SessionId = apply( randomStr(size) )
+
+    /** Attempts to parse a session ID */
+    def parse( id: String ): Option[SessionId] = id.trim.split(":", 2) match {
+        case Array(sequence, sessId) => {
+            if ( validate(sequence) && validate(sessId) )
+                Some( SessionId(sequence, sessId) )
+            else
+                None
+        }
+        case _ => None
+    }
 }
 
 /**
@@ -46,24 +61,8 @@ object SessionId {
  */
 case class SessionId ( val sequenceId: String, val token: String ) {
 
-    assert(
-        sequenceId.length == SessionId.size,
-        "Wrong sized session sequence ID"
-    )
-
-    assert(
-        token.length == SessionId.size,
-        "Wrong sized session token"
-    )
-
-    assert(
-        sequenceId.toSet.diff(SessionId.charSet).size == 0,
-        "Session sequence ID contains invalid characters"
-    )
-    assert(
-        token.toSet.diff(SessionId.charSet).size == 0,
-        "Session token contains invalid characters"
-    )
+    assert( SessionId.validate(sequenceId), "Invalid sequence id" )
+    assert( SessionId.validate(token), "Invalid session token" )
 
     /** {@inheritDoc} */
     override def toString = sequenceId + ":" + token

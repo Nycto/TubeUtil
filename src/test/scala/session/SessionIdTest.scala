@@ -16,15 +16,74 @@ class SessionIdTest extends Specification {
 
         "Validate invalid data" in {
             SessionId("tooshort") must throwA[AssertionError]
-            SessionId("123456790123456790123456790!!") must
+            SessionId("123456789012345678901234567890!!") must
                 throwA[AssertionError]
 
-            SessionId("12345679012345679012345679012", "tooshort") must
+            SessionId("123456789012345678901234567890", "tooshort") must
                 throwA[AssertionError]
             SessionId(
-                "12345679012345679012345679012",
-                "123456790123456790123456790!!"
+                "12345678901234567890123456789012",
+                "123456789012345678901234567890!!"
             ) must throwA[AssertionError]
+        }
+    }
+
+    "Session Id parsing" should {
+
+        "Return a SessionId" in {
+            SessionId.parse(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012"
+            ) must_== Some( SessionId(
+                "12345678901234567890123456789012",
+                "12345678901234567890123456789012"
+            ) )
+
+            SessionId.parse(
+                "   12345678901234567890123456789012:" +
+                "12345678901234567890123456789012   "
+            ) must_== Some( SessionId(
+                "12345678901234567890123456789012",
+                "12345678901234567890123456789012"
+            ) )
+        }
+
+        "Return a 'None' when the sequence is too long or short" in {
+            SessionId.parse(
+                "123456789012345678901234567890123:" +
+                "12345678901234567890123456789012"
+            ) must_== None
+
+            SessionId.parse(
+                "123456789012345678901234567890:" +
+                "12345678901234567890123456789012"
+            ) must_== None
+        }
+
+        "Return a 'None' when the Session ID is too short or long" in {
+            SessionId.parse(
+                "12345678901234567890123456789012:" +
+                "123456789012345678901234567890123"
+            ) must_== None
+
+            SessionId.parse(
+                "12345678901234567890123456789012:" +
+                "123456789012345678901234567890"
+            ) must_== None
+        }
+
+        "Return a 'None' when the sequence contains invalid characters" in {
+            SessionId.parse(
+                "12345678901234567890123456789012:" +
+                "!234567%901234567890$23456789012"
+            ) must_== None
+        }
+
+        "Return a 'None' when the session Id contains invalid characters" in {
+            SessionId.parse(
+                "12!4567890123456%890123456789#12:" +
+                "12345678901234567890123456789012"
+            ) must_== None
         }
     }
 }
