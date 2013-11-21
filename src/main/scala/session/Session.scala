@@ -1,6 +1,49 @@
 package com.roundeights.tubeutil.session
 
 import scala.concurrent._
+import java.util.Date
+import com.roundeights.tubeutil.DateGen
+import scala.collection.immutable.StringOps
+
+/** @see SessionInfo */
+object SessionInfo {
+
+    /** Parses a string into a session info object */
+    def apply ( content: String ): SessionInfo = {
+        new StringOps(content).split('|') match {
+            case Array(sessionId, created, isHttps) => SessionInfo(
+                SessionId.parse(sessionId).getOrElse(
+                    throw new IllegalArgumentException(
+                        "Could not decode SessionInfo: Invalid SessionID")),
+                DateGen.parse( created ),
+                isHttps match {
+                    case "0" => false
+                    case "1" => true
+                    case _ => throw new IllegalArgumentException(
+                        "Could not decode SessionInfo: isHttps was not a bool")
+                }
+            )
+            case _ => throw new IllegalArgumentException(
+                "Could not decode SessionInfo: too many pipes")
+        }
+    }
+}
+
+/** Information about a session */
+case class SessionInfo(
+    val sessionId: SessionId,
+    val created: Date,
+    val isHttps: Boolean
+) {
+
+    /** Encodes this session to a string */
+    def encode = "%s|%s|%s".format(
+        sessionId,
+        DateGen.format(created),
+        if ( isHttps ) 1 else 0
+    )
+}
+
 
 /** An individual session */
 class Session (

@@ -6,6 +6,7 @@ import org.specs2.mock._
 import scala.concurrent._
 import scala.concurrent.duration._
 import java.util.concurrent.Executor
+import com.roundeights.tubeutil.DateGen
 
 class SessionTest extends Specification with Mockito {
 
@@ -93,6 +94,64 @@ class SessionTest extends Specification with Mockito {
 
             await( session.unset("key").failed )
             await( session.get("key") ) must_== None
+        }
+    }
+
+    "A SessionInfo" should {
+
+        val sessionInfo = SessionInfo(
+            SessionId(
+                "12345678901234567890123456789012",
+                "12345678901234567890123456789012"
+            ),
+            DateGen.parse("2013-11-19T19:51:11-0800"),
+            true
+        )
+
+        "be encodable" in {
+            sessionInfo.encode must_==
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000|1"
+        }
+
+        "Be decodable" in {
+            SessionInfo(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000|1"
+            ) must_== sessionInfo
+        }
+
+        "Throw when the session info is invalid" in {
+            SessionInfo(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000|3"
+            ) must throwA[IllegalArgumentException]
+
+            SessionInfo(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "11-20T03:51:11+0000|1"
+            ) must throwA[java.text.ParseException]
+
+            SessionInfo(
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000|1"
+            ) must throwA[IllegalArgumentException]
+
+            SessionInfo(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000"
+            ) must throwA[IllegalArgumentException]
+
+            SessionInfo(
+                "12345678901234567890123456789012:" +
+                "12345678901234567890123456789012|" +
+                "2013-11-20T03:51:11+0000|1|oops"
+            ) must throwA[IllegalArgumentException]
         }
     }
 
