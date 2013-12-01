@@ -17,7 +17,7 @@ resolvers ++= Seq("RoundEights" at "http://maven.spikemark.net/roundeights")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "com.roundeights" %% "skene" % "0.1",
+    "com.roundeights" %% "skene" % "0.2.0",
     "com.roundeights" %% "scalon" % "0.1",
     "com.roundeights" %% "hasher" % "1.0.0",
     "com.roundeights" %% "isred" % "0.2" % "provided",
