@@ -27,6 +27,10 @@ object SessionInfo {
                 "Could not decode SessionInfo: too many pipes")
         }
     }
+
+    /** Creates a new session info object */
+    def create( isHttps: Boolean )
+        = new SessionInfo( SessionId(), new Date, isHttps )
 }
 
 /** Information about a session */
@@ -42,6 +46,10 @@ case class SessionInfo(
         DateGen.format(created),
         if ( isHttps ) 1 else 0
     )
+
+    /** Determines whether this session is expired, given a TTL */
+    def isExpired( ttl: Int )
+        = created.getTime + (ttl * 1000) < (new Date).getTime
 }
 
 
