@@ -64,14 +64,14 @@ class PrereqTest extends Specification with Mockito {
         "Create a new session if the request doesn't have one" in {
             val access = mock[SessionLoad.Access]
             access.sessionId returns None
-            access.create returns Future.failed( err )
+            access.create( any[String] ) returns Future.failed( err )
             SessionLoad.process( access ).failed must ===(err).await
         }
 
         "Fail if the session creation fails" in {
             val access = mock[SessionLoad.Access]
             access.sessionId returns None
-            access.create returns Future.successful( sess )
+            access.create( any[String] ) returns Future.successful( sess )
             SessionLoad.process( access ) must ===(sess).await
         }
 
@@ -79,7 +79,7 @@ class PrereqTest extends Specification with Mockito {
             val access = mock[SessionLoad.Access]
             access.sessionId returns Some( sessId )
             access.getSessionInfo( sessId ) returns Future.successful(None)
-            access.create returns Future.successful( sess )
+            access.create( any[String] ) returns Future.successful( sess )
             SessionLoad.process( access ) must ===(sess).await
         }
 
@@ -94,7 +94,7 @@ class PrereqTest extends Specification with Mockito {
             val access = mock[SessionLoad.Access]
             access.sessionId returns Some( sessId )
             access.getSessionInfo( sessId ) returns Future.successful(None)
-            access.create returns Future.failed(err)
+            access.create( any[String] ) returns Future.failed(err)
             SessionLoad.process(access).failed must ===(err).await
         }
 
@@ -103,7 +103,8 @@ class PrereqTest extends Specification with Mockito {
             access.sessionId returns Some( sessId )
             access.getSessionInfo( sessId ) returns Future.successful(
                 Some( SessionInfo( SessionId(), new Date, true ) ) )
-            access.recreate( sessId ) returns Future.successful( sess )
+            access.recreate( ===(sessId), any[String] ) returns
+                Future.successful( sess )
             SessionLoad.process( access ) must ===(sess).await
         }
 
@@ -113,7 +114,8 @@ class PrereqTest extends Specification with Mockito {
             access.getSessionInfo( sessId ) returns
                 Future.successful( Some(sessInfo) )
             access.isExpired( sessInfo ) returns true
-            access.recreate( sessId ) returns Future.successful( sess )
+            access.recreate( ===(sessId), any[String] ) returns
+                Future.successful( sess )
             SessionLoad.process( access ) must ===(sess).await
         }
 
@@ -124,7 +126,8 @@ class PrereqTest extends Specification with Mockito {
                 Future.successful( Some(sessInfo) )
             access.isExpired( sessInfo ) returns false
             access.isSecure returns false
-            access.recreate( sessId ) returns Future.successful( sess )
+            access.recreate( ===(sessId), any[String] ) returns
+                Future.successful( sess )
             SessionLoad.process( access ) must ===(sess).await
         }
 

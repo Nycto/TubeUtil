@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
     "com.roundeights" %% "hasher" % "1.0.0",
     "com.roundeights" %% "isred" % "0.2" % "provided",
     "com.github.jknack" % "handlebars" % "1.0.0" % "provided",
+    "org.slf4j" % "slf4j-simple" % "1.7.5",
     "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
     "org.specs2" %% "specs2" % "2.3.4" % "test"
 )

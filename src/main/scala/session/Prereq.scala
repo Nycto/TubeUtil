@@ -2,6 +2,7 @@ package com.roundeights.tubeutil.session
 
 import scala.concurrent._
 import scala.util.{Success, Failure}
+import org.slf4j.{Logger, LoggerFactory}
 import com.roundeights.skene.{Provider, Bundle, Request, Response, Cookie}
 import com.roundeights.isred.Redis
 
@@ -20,6 +21,9 @@ private[session] object SessionLoad {
 
     /** The default session timeout */
     private[session] val defaultTtl = 30 * 24 * 60 * 60
+
+    /** Internal logger */
+    private lazy val log = LoggerFactory.getLogger(getClass)
 
     /** Session validation data access*/
     class Access (
@@ -56,7 +60,8 @@ private[session] object SessionLoad {
             = Future.successful(new Session(sessId, data))
 
         /** Creates a new session */
-        def create: Future[Session] = {
+        def create( why: String ): Future[Session] = {
+            log.info( why )
             val sessInfo = SessionInfo.create( isSecure )
             data.create( sessInfo )
                 .map( _ => cookie( sessInfo.sessionId ) )
@@ -64,8 +69,8 @@ private[session] object SessionLoad {
         }
 
         /** Destroys the session and creates a new one */
-        def recreate ( sessId: SessionId ) : Future[Session] = {
-            val created = create
+        def recreate ( sessId: SessionId, why: String ) : Future[Session] = {
+            val created = create( "Recreating session; " + why )
             data.destroy( sessId.sequenceId ).flatMap( _ => created )
         }
 
@@ -80,24 +85,26 @@ private[session] object SessionLoad {
         ( implicit context: ExecutionContext )
     : Future[Session] = {
         access.sessionId match {
-            case None => access.create
+            case None => access.create( "No session Id set" )
             case Some(sessId) => access.getSessionInfo(sessId).flatMap {
-                case None => access.create
+                case None => access.create(
+                    "Session sequence not found in data layer" )
                 case Some(sessInfo) => {
 
                     // If the full session ID doesn't match
                     if ( sessInfo.sessionId != sessId ) {
-                        access.recreate( sessId )
+                        access.recreate( sessId,
+                            "SessionID doesnt match sequence" )
                     }
 
                     // If the session is expired
                     else if ( access.isExpired( sessInfo ) ) {
-                        access.recreate( sessId )
+                        access.recreate( sessId, "Session is expired" )
                     }
 
                     // If there is a mismatch between secure and non-secure
                     else if ( access.isSecure ^ sessInfo.isHttps ) {
-                        access.recreate( sessId )
+                        access.recreate( sessId, "Session ssl state mismatch" )
                     }
 
                     // Otherwise, the session is valid
