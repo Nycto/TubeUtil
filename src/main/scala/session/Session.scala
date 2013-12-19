@@ -49,7 +49,7 @@ case class SessionInfo(
 
     /** Determines whether this session is expired, given a TTL */
     def isExpired( ttl: Int )
-        = created.getTime + (ttl * 1000) < (new Date).getTime
+        = created.getTime + (ttl.toLong * 1000) < (new Date).getTime
 }
 
 
