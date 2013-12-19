@@ -3,6 +3,7 @@ package com.roundeights.tubeutil.session
 import scala.concurrent._
 import scala.util.{Success, Failure}
 import com.roundeights.skene.{Provider, Bundle, Request, Response, Cookie}
+import com.roundeights.isred.Redis
 
 /** A loaded session */
 trait SessionReq {
@@ -120,6 +121,16 @@ class SessionProvider (
 ) (
     implicit context: ExecutionContext
 ) extends Provider[SessionReq] {
+
+    /** Construct directly from a redis instance */
+    def this(
+        redis: Redis,
+        prefix: String = "session",
+        prototype: Cookie = Cookie("sess", "", Some(SessionLoad.defaultTtl)),
+        isSecure: (Request) => Boolean = _.isSecure
+    )(
+        implicit context: ExecutionContext
+    ) = this( new RedisData( redis, prefix ), prototype, isSecure )
 
     /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[SessionReq] ): Unit = {
