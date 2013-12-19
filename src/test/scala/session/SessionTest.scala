@@ -95,6 +95,22 @@ class SessionTest extends Specification with Mockito {
             await( session.unset("key").failed )
             await( session.get("key") ) must_== None
         }
+
+        "Generate a unique token from the session id" in {
+            val data = mock[DataLayer]
+            val session = new Session(
+                SessionId(
+                    "12345678901234567890123456789012",
+                    "12345678901234567890123456789012"
+                ),
+                data
+            )
+
+            session.token("seed") must_==
+                "d21c98e1de2774858b1da5c739fcb90d8e5b76f1df7263d52" +
+                "d534980ed82612dc047caaf69b43dde92d24fdc64e34bf35f" +
+                "f6ff62414ac11c79730ae4781d40d8"
+        }
     }
 
     "A SessionInfo" should {

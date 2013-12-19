@@ -3,6 +3,7 @@ package com.roundeights.tubeutil.session
 import scala.concurrent._
 import java.util.Date
 import com.roundeights.tubeutil.DateGen
+import com.roundeights.hasher.Hasher
 import scala.collection.immutable.StringOps
 
 /** @see SessionInfo */
@@ -96,5 +97,8 @@ class Session (
         data.unset( sessionID, key ).map( _ => Unit )
     }
 
+    /** Generates a unique token based on this session */
+    def token( seed: String ): String
+        = Hasher(sessionID.toString).salt(seed).sha512.hex
 }
 
