@@ -100,5 +100,9 @@ class Session (
     /** Generates a unique token based on this session */
     def token( seed: String ): String
         = Hasher(sessionID.toString).salt(seed).sha512.hex
+
+    /** Destroys this session and sequence */
+    def destroy( implicit context: ExecutionContext ): Future[Unit]
+        = data.destroy( sessionID.sequenceId ).map( _ => Unit )
 }
 
