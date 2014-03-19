@@ -130,6 +130,8 @@ class BaseTemplater (
             )
             case seq: Seq[_]
                 => JavaConversions.asJavaIterable( seq.map( convert _ ) )
+            case None => null
+            case Some(inner) => inner
             case _ => value
         }
 

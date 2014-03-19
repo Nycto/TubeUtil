@@ -28,6 +28,18 @@ class TemplaterTest extends Specification {
                 "start:one:two:end"
         }
 
+        "Handle Scala Nones" in {
+            Templater(_ => "start:{{key}}:{{#key}}inner:{{/key}}end")
+                .apply("tplName", "key" -> None) must_==
+                "start::end"
+        }
+
+        "Handle Scala Somes" in {
+            Templater(_ => "start:{{#key}}{{this}}:{{/key}}end")
+                .apply("tplName", "key" -> Some("one")) must_==
+                "start:one:end"
+        }
+
         "Allow custom handlers to be registered" in {
             val tpl = Templater( _ =>  "start:{{#do}}middle{{/do}}:end" )
                 .handle( "do", (content) => {
