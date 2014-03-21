@@ -18,12 +18,11 @@ class AssetLoaderTest extends Specification with Mockito {
         "Generate a URL with a hash" in {
 
             val loader = new AssetLoader(
-                "asset", true, hasher,
-                (asset: Asset) => {
+                "asset", hasher, (asset: Asset) => {
                     asset must_== Asset("path/file.js")
                     Some(reader)
                 }
-            )
+            ).addHashes
 
             loader.url("/path/file.js") must_==
                 Some("/asset/path/file.ABCDEFGH.js")
@@ -31,7 +30,7 @@ class AssetLoaderTest extends Specification with Mockito {
 
         "Generate a URL without a hash when they are disabled" in {
             val loader = new AssetLoader(
-                "asset", false, hasher,
+                "asset", hasher,
                 (asset: Asset) => {
                     asset must_== Asset("path/file.js")
                     Some(reader)
@@ -43,27 +42,27 @@ class AssetLoaderTest extends Specification with Mockito {
 
         "Normalize the prefix" in {
             val loader = new AssetLoader(
-                "/asset/./path/../", true,
+                "/asset/./path/../",
                 hasher, _ => Some(reader)
-            )
+            ).addHashes
 
             loader.url("/path/file.js") must_==
                 Some("/asset/path/file.ABCDEFGH.js")
         }
 
         "Return None if the file can't be found" in {
-            new AssetLoader("asset", true, mock[HashCache], _ => None)
+            new AssetLoader("asset", mock[HashCache], _ => None)
                 .url("/path/file.js") must_== None
         }
 
         "Find Dir based files" in {
-            AssetLoader.fromDir( "src/test/resources", "static")
+            AssetLoader.fromDir("src/test/resources", "static").addHashes
                 .url("test.txt") must_==
                 Some("/static/test.76cce7d0.txt")
         }
 
         "Find Jar based files" in {
-            AssetLoader.fromJar(classOf[AssetLoaderTest], "static")
+            AssetLoader.fromJar(classOf[AssetLoaderTest], "static").addHashes
                 .url("test.txt") must_==
                 Some("/static/test.76cce7d0.txt")
         }
