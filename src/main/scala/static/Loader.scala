@@ -2,6 +2,7 @@ package com.roundeights.tubeutil.static
 
 import scala.concurrent.ExecutionContext
 import scala.xml.Utility
+import scala.io.Source
 import java.io.{File, FileInputStream}
 import java.util.Date
 import com.roundeights.skene.{Matcher, Request, Response, Handler}
@@ -132,6 +133,10 @@ class AssetLoader (
     /** Returns the HTML needed to load a list of JS assets. */
     def js ( files: String* ): String
         = html(files, "<script type='text/javascript' src='%s'></script>")
+
+    /** Returns the content of a file */
+    def content ( path: String ): Option[Source]
+        = finder( Asset( path ) ).map(_.stream).map(Source.fromInputStream _)
 
 }
 

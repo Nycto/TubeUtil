@@ -67,6 +67,12 @@ class AssetLoaderTest extends Specification with Mockito {
                 .url("test.txt") must_==
                 Some("/static/test.76cce7d0.txt")
         }
+
+        "Return the content of an asset" in {
+            AssetLoader.fromDir( "src/test/resources", "static")
+                .content("test.txt").map( _.mkString ) must_==
+                Some("Some Content\n")
+        }
     }
 
 }
