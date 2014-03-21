@@ -40,7 +40,11 @@ class AssetLoader (
     pathPrefix: String,
     private val hash: HashCache,
     private val finder: AssetFinder,
-    private val hashes: Boolean = false
+    private val hashes: Boolean = false,
+    private val jsTemplate: String
+        = "<script type='text/javascript' src='%s'></script>",
+    private val cssTemplate: String
+        = "<link rel='stylesheet' href='%s' type='text/css'>"
 )(
     implicit context: ExecutionContext
 ) {
@@ -56,9 +60,11 @@ class AssetLoader (
     /** Adjusts the configuration of this Loader */
     def set(
         finder: AssetFinder = this.finder,
-        hashes: Boolean = this.hashes
+        hashes: Boolean = this.hashes,
+        jsTemplate: String = this.jsTemplate,
+        cssTemplate: String = this.cssTemplate
     ): AssetLoader = new AssetLoader(
-        pathPrefix, hash, finder, hashes
+        pathPrefix, hash, finder, hashes, jsTemplate, cssTemplate
     )
 
     /** Returns a debug version of this loader */
@@ -124,12 +130,10 @@ class AssetLoader (
     }
 
     /** Returns the HTML needed to load a list of CSS assets. */
-    def css ( files: String* ): String
-        = html(files, "<link rel='stylesheet' href='%s' type='text/css'>")
+    def css ( files: String* ): String = html(files, cssTemplate)
 
     /** Returns the HTML needed to load a list of JS assets. */
-    def js ( files: String* ): String
-        = html(files, "<script type='text/javascript' src='%s'></script>")
+    def js ( files: String* ): String = html(files, jsTemplate)
 
     /** Returns the content of a file */
     def content ( path: String ): Option[Source]
