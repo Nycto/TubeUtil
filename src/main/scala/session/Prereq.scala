@@ -67,7 +67,7 @@ class SessionProvider (
 /**
  * Builds a SessionReq
  */
-class SessionIfeExistsProvider (
+class SessionIfExistsProvider (
     private val data: DataLayer,
     private val prototype: Cookie
         = Cookie("sess", "", Some(SessionLoad.defaultTtl)),
