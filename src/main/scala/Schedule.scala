@@ -28,6 +28,18 @@ object Schedule {
         }, delay.toMillis, TimeUnit.MILLISECONDS)
     }
 
+    /** Delays the fulfillment of a future */
+    def apply[T]
+        ( delay: Duration, future: Future[T] )
+        ( implicit ctx: ExecutionContext )
+    : Future[T] = {
+        val out = Promise[T]
+        future.onComplete {
+            case _ => apply(delay) { out.completeWith(future) }
+        }
+        out.future
+    }
+
     /** Delays the fulfillment of a future on failure */
     def delayFailure[T]
         ( delay: Duration, future: Future[T] )
