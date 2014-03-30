@@ -15,6 +15,13 @@ class ScheduleTest extends Specification {
             Schedule( Duration(500, "ms") ) { promise.success("Success") }
             promise.future must ===("Success").await
         }
+
+        "delay a failed future" in {
+            val err: Throwable = new Exception("Test Exception")
+            val future = Schedule.delayFailure[Unit](
+                Duration(500, "ms"), Future.failed(err) )
+            future.failed must ===(err).await
+        }
     }
 }
 
