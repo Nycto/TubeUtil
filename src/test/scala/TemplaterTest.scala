@@ -40,6 +40,28 @@ class TemplaterTest extends Specification {
                 "start:one:end"
         }
 
+        "Handle Scala Tuples" in {
+            Templater(_ => "{{key/1}}:{{key/2}}")
+                .apply("tplName", "key" -> ("one", "two")) must_==
+                "one:two"
+
+            Templater(_ => "{{key/1}}:{{key/2}}:{{key/3}}")
+                .apply("tplName", "key" -> ("one", "two", "three")) must_==
+                "one:two:three"
+
+            Templater(_ => "{{key/1}}:{{key/2}}:{{key/3}}:{{key/4}}").apply(
+                "tplName",
+                "key" -> ("one", "two", "three", "four")
+            ) must_== "one:two:three:four"
+
+            Templater(
+                _ => "{{key/1}}:{{key/2}}:{{key/3}}:{{key/4}}:{{key/5}}"
+            ).apply(
+                "tplName",
+                "key" -> ("one", "two", "three", "four", "five")
+            ) must_== "one:two:three:four:five"
+        }
+
         "Allow custom handlers to be registered" in {
             val tpl = Templater( _ =>  "start:{{#do}}middle{{/do}}:end" )
                 .handle( "do", (content) => {

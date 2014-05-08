@@ -49,6 +49,43 @@ object Templater {
 }
 
 /**
+ * The handlebars implementation requires 'get*' style methods for data to
+ * be useable. This wraps tuples with a 'get' method
+ */
+object TupleWrapper {
+
+    /** Wraps a tuple2 with getter methods */
+    class Two[A, B] ( private val tuple: (A, B) ) {
+        def get1: A = tuple._1
+        def get2: B = tuple._2
+    }
+
+    /** Wraps a tuple3 with getter methods */
+    class Three[A, B, C] ( private val tuple: (A, B, C) ) {
+        def get1: A = tuple._1
+        def get2: B = tuple._2
+        def get3: C = tuple._3
+    }
+
+    /** Wraps a tuple4 with getter methods */
+    class Four[A, B, C, D] ( private val tuple: (A, B, C, D) ) {
+        def get1: A = tuple._1
+        def get2: B = tuple._2
+        def get3: C = tuple._3
+        def get4: D = tuple._4
+    }
+
+    /** Wraps a tuple5 with getter methods */
+    class Five[A, B, C, D, E] ( private val tuple: (A, B, C, D, E) ) {
+        def get1: A = tuple._1
+        def get2: B = tuple._2
+        def get3: C = tuple._3
+        def get4: D = tuple._4
+        def get5: E = tuple._5
+    }
+}
+
+/**
  * An interface for rendering templated data
  */
 trait Templater {
@@ -132,6 +169,10 @@ class BaseTemplater (
                 => JavaConversions.asJavaIterable( seq.map( convert _ ) )
             case None => null
             case Some(inner) => inner
+            case tuple: Tuple5[_, _, _, _, _] => new TupleWrapper.Five(tuple)
+            case tuple: Tuple4[_, _, _, _] => new TupleWrapper.Four(tuple)
+            case tuple: Tuple3[_, _, _] => new TupleWrapper.Three(tuple)
+            case tuple: Tuple2[_, _] => new TupleWrapper.Two(tuple)
             case _ => value
         }
 
