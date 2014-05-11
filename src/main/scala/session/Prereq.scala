@@ -30,12 +30,18 @@ trait SessionIfExistsReq {
  */
 class SessionProvider (
     private val data: DataLayer,
-    private val prototype: Cookie
-        = Cookie("sess", "", Some(SessionLoad.defaultTtl)),
-    private val isSecure: (Request) => Boolean = _.isSecure
+    private val prototype: Cookie,
+    private val isSecure: (Request) => Boolean
 ) (
     implicit context: ExecutionContext
 ) extends Provider[SessionReq] {
+
+    /** Constructor */
+    def this( data: DataLayer )( implicit context: ExecutionContext ) = this(
+        data,
+        Cookie("sess", "", Some(SessionLoad.defaultTtl)),
+        _.isSecure
+    )
 
     /** Construct directly from a redis instance */
     def this(
@@ -69,12 +75,18 @@ class SessionProvider (
  */
 class SessionIfExistsProvider (
     private val data: DataLayer,
-    private val prototype: Cookie
-        = Cookie("sess", "", Some(SessionLoad.defaultTtl)),
-    private val isSecure: (Request) => Boolean = _.isSecure
+    private val prototype: Cookie,
+    private val isSecure: (Request) => Boolean
 ) (
     implicit context: ExecutionContext
 ) extends Provider[SessionIfExistsReq] {
+
+    /** Constructor */
+    def this( data: DataLayer )( implicit context: ExecutionContext ) = this(
+        data,
+        Cookie("sess", "", Some(SessionLoad.defaultTtl)),
+        _.isSecure
+    )
 
     /** Construct directly from a redis instance */
     def this(
