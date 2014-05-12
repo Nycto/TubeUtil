@@ -58,8 +58,8 @@ class AssetTest extends Specification {
         }
 
         "Return a mime type" in {
-            Asset("test.html").mimeType must_== Some(ContentType.Html())
-            Asset("test.css").mimeType must_== Some(ContentType.Css())
+            Asset("test.html").mimeType must_== Some(ContentType.Html)
+            Asset("test.css").mimeType must_== Some(ContentType.Css)
             Asset("test.unrecognized").mimeType must_== None
             Asset("test").mimeType must_== None
         }

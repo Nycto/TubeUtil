@@ -49,18 +49,18 @@ extends Handler {
             case None => notFound( response )
 
             case Some(reader) if isInCache( request, reader ) => {
-                response.code( Response.Code.NotModified() )
+                response.code( Response.Code.NotModified )
                 response.done
             }
 
             case Some(reader) => {
                 if ( asset.isVersioned ) {
                     response.header(
-                        Response.Header.CacheControl(),
+                        Response.Header.CacheControl,
                         "max-age=31560000, must-revalidate, public"
                     )
                 }
-                response.header(Response.Header.LastModified(), reader.modified)
+                response.header(Response.Header.LastModified, reader.modified)
                 reader.mimeType.map( mime => response.contentType(mime) )
                 response.content( reader.renderable )
                 response.done

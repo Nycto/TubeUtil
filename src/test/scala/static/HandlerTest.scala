@@ -33,7 +33,7 @@ class AssetHandlerTest extends Specification with Mockito {
         val reader = mock[Asset.Reader]
         reader.renderable returns renderable
         reader.modified returns modified
-        reader.mimeType returns Some( Response.ContentType.JavaScript() )
+        reader.mimeType returns Some( Response.ContentType.JavaScript )
         reader
     }
 
@@ -108,7 +108,7 @@ class AssetHandlerTest extends Specification with Mockito {
                 .handle( recover, request, response )
 
             there was no(response).content(renderable)
-            there was one(response).code( Response.Code.NotModified() )
+            there was one(response).code( Response.Code.NotModified )
             there was one(response).done
             there was no(recover).orRethrow( any[Throwable] )
         }
@@ -122,7 +122,7 @@ class AssetHandlerTest extends Specification with Mockito {
                 .handle( recover, request, response )
 
             there was no(response).content(renderable)
-            there was one(response).code( Response.Code.NotModified() )
+            there was one(response).code( Response.Code.NotModified )
             there was one(response).done
             there was no(recover).orRethrow( any[Throwable] )
         }
