@@ -54,6 +54,8 @@ class AssetHandlerTest extends Specification with Mockito {
 
             mockHandler( mockReader() ).handle( recover, request, response )
 
+            there was no(response)
+                .header( ===(Response.Header.CacheControl), any[String] )
             there was one(response).content(renderable)
             there was one(response).done
             there was no(recover).orRethrow( any[Throwable] )
@@ -66,6 +68,10 @@ class AssetHandlerTest extends Specification with Mockito {
 
             mockHandler( mockReader() ).handle( recover, request, response )
 
+            there was one(response).header(
+                Response.Header.CacheControl,
+                "max-age=31560000, must-revalidate, public"
+            )
             there was one(response).content(renderable)
             there was one(response).done
             there was no(recover).orRethrow( any[Throwable] )
