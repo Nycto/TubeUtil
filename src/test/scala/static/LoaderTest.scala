@@ -40,6 +40,13 @@ class AssetLoaderTest extends Specification with Mockito {
             loader.url("/path/file.js") must_== Some("/asset/path/file.js")
         }
 
+        "Generate URLs with a host" in {
+            val loader = new AssetLoader("asset", hasher, _ => Some(reader))
+                .set( host = Some("http://example.com") )
+            loader.url("/path/file.js") must_==
+                Some("http://example.com/asset/path/file.js")
+        }
+
         "Normalize the prefix" in {
             val loader = new AssetLoader(
                 "/asset/./path/../",

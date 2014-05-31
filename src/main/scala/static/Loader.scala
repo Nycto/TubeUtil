@@ -41,6 +41,7 @@ class AssetLoader (
     private val hash: HashCache,
     private val finder: AssetFinder,
     private val hashes: Boolean = false,
+    private val host: Option[String] = None,
     private val jsTemplate: String
         = "<script type='text/javascript' src='%s'></script>",
     private val cssTemplate: String
@@ -61,10 +62,11 @@ class AssetLoader (
     def set(
         finder: AssetFinder = this.finder,
         hashes: Boolean = this.hashes,
+        host: Option[String] = this.host,
         jsTemplate: String = this.jsTemplate,
         cssTemplate: String = this.cssTemplate
     ): AssetLoader = new AssetLoader(
-        pathPrefix, hash, finder, hashes, jsTemplate, cssTemplate
+        pathPrefix, hash, finder, hashes, host, jsTemplate, cssTemplate
     )
 
     /** Returns a debug version of this loader */
@@ -106,7 +108,7 @@ class AssetLoader (
     ): Unit = new AssetHandler( finder ).serve( asset, request, response )
 
     /** Returns the relative URL for an asset */
-    def url ( path: String ): Option[String] = {
+    private def getPath ( path: String ): Option[String] = {
         val asset = Asset(path)
         if ( hashes ) {
             finder( asset ).map( hash.hash _ ).map(sha1 => "%s/%s.%s%s".format(
@@ -120,6 +122,11 @@ class AssetLoader (
             finder( asset ).map( _ => prefix + "/" + asset.path )
         }
     }
+
+    /** Returns the relative URL for an asset */
+    def url ( path: String ): Option[String] = getPath(path).map(
+        urlPath => host.map( _ + urlPath ).getOrElse( urlPath )
+    )
 
     /** Formats a list of assets */
     private def html ( files: Seq[String], html: String ): String = {
