@@ -158,6 +158,37 @@ class AssetHandlerTest extends Specification with Mockito {
             there was no(recover).orRethrow( any[Throwable] )
         }
 
+        "Should allow a custom cache TTL" in {
+            val request = mockRequest( "path.ABC123.js", None )
+            val response = mock[Response]
+            val recover = mock[Recover]
+
+            new AssetHandler( AssetFinder(_ => Some(mockReader())), 123456 )
+                .handle( recover, request, response )
+
+            there was one(response).header(
+                Response.Header.CacheControl,
+                "max-age=123456, must-revalidate, public"
+            )
+            there was no(recover).orRethrow( any[Throwable] )
+        }
+
+        "Allow cache headers to be forced" in {
+            val request = mockRequest( "path.js", None )
+            val response = mock[Response]
+            val recover = mock[Recover]
+
+            new AssetHandler(
+                AssetFinder(_ => Some(mockReader())),
+                forceCache = true
+            ).handle( recover, request, response )
+
+            there was one(response).header(
+                Response.Header.CacheControl,
+                "max-age=31560000, must-revalidate, public"
+            )
+            there was no(recover).orRethrow( any[Throwable] )
+        }
     }
 
 }

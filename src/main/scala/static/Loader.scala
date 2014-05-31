@@ -85,14 +85,20 @@ class AssetLoader (
     }
 
     /** Returns a companion Handler */
-    def handler: Handler with Matcher = {
+    def handler(
+        forceCache: Boolean = false,
+        ttl: Long = AssetHandler.defaultTtl
+    ): Handler with Matcher = {
         Matcher.and(
             Matcher.method( Request.Method.GET ),
             Matcher.path( prefix + "/::asset" )
         ).handle(
-            new AssetHandler( finder )
+            new AssetHandler( finder, ttl, forceCache )
         )
     }
+
+    /** Returns a companion Handler */
+    def handler: Handler with Matcher = handler()
 
     /** Serves the given asset to the given response */
     def serve ( asset: Asset, request: Request, response: Response ): Unit

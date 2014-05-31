@@ -4,13 +4,23 @@ import com.roundeights.skene.{Request, Response, Recover, Handler}
 import java.io.{File, IOException}
 import scala.concurrent.ExecutionContext
 
+/** @see AssetHandler */
+object AssetHandler {
+
+    /** The default TTL */
+    private[static] val defaultTtl = 31560000
+}
+
 /**
  * Dispenses an asset to the client
  */
-class AssetHandler
-    ( private val finder: AssetFinder )
-    ( implicit context: ExecutionContext )
-extends Handler {
+class AssetHandler (
+    private val finder: AssetFinder,
+    private val ttl: Long = AssetHandler.defaultTtl,
+    private val forceCache: Boolean = false
+)(
+    implicit context: ExecutionContext
+) extends Handler {
 
     /** Creates a new AssetLoader from a callback */
     def this
@@ -54,10 +64,10 @@ extends Handler {
             }
 
             case Some(reader) => {
-                if ( asset.isVersioned ) {
+                if ( forceCache || asset.isVersioned ) {
                     response.header(
                         Response.Header.CacheControl,
-                        "max-age=31560000, must-revalidate, public"
+                        "max-age=%d, must-revalidate, public".format(ttl)
                     )
                 }
                 response.header(Response.Header.LastModified, reader.modified)
@@ -87,7 +97,6 @@ extends Handler {
         case None => notFound( response )
         case Some(asset) => serve( asset, request, response )
     }
-
 }
 
 
