@@ -27,7 +27,7 @@ private[session] object SessionLoad {
 
         /** Extracts the session ID from the request */
         def sessionId: Option[SessionId] = {
-            request.cookies.first( prototype.name )
+            request.cookies( prototype.name )
                 .flatMap( cookie => SessionId.parse(cookie.value) )
         }
 
