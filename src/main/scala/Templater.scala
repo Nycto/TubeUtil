@@ -6,7 +6,7 @@ import com.github.jknack.handlebars.io._
 import com.github.jknack.handlebars.{Handlebars, Helper, Options}
 import com.github.jknack.handlebars.{Context => TplContext}
 import com.github.jknack.handlebars.{Template => RawTemplate}
-import java.io.File
+import java.io.{File, Writer, StringWriter, OutputStream, OutputStreamWriter}
 import java.util.{HashMap => JavaMap}
 
 /** @see Templater */
@@ -121,8 +121,19 @@ abstract class Template (
         )
     ).build
 
+    /** Renders into a Writer */
+    def render( into: Writer ): Unit
+
+    /** Renders into an OutputStream */
+    def render( into: OutputStream ): Unit
+        = render( new OutputStreamWriter(into) )
+
     /** Generates the content of this template */
-    def render: String
+    def render: String = {
+        val writer = new StringWriter
+        render( writer )
+        writer.toString
+    }
 
     /** Embeds data in this template */
     def data ( values: Map[String, Any] ): Template
@@ -144,7 +155,8 @@ private class SimpleTemplate (
     override def toString: String = "Template(%s)".format(name)
 
     /** {@inheritDoc} */
-    override def render: String = compiled.apply( rawContext )
+    override def render( into: Writer ): Unit
+        = compiled.apply( rawContext, into )
 
     /** {@inheritDoc} */
     override def data ( values: Map[String, Any] ): Template
@@ -167,8 +179,8 @@ private class WrappedTemplate (
         = "Template(%s, %s -> %s)".format(name, as, wrapped)
 
     /** {@inheritDoc} */
-    override def render: String
-        = wrapped.data( as -> compiled.apply(rawContext) ).render
+    override def render( into: Writer ): Unit
+        = wrapped.data( as -> compiled.apply(rawContext) ).render(into)
 
     /** {@inheritDoc} */
     override def data ( values: Map[String, Any] ): Template
