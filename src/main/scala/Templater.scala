@@ -5,6 +5,7 @@ import scala.collection.JavaConversions
 import com.github.jknack.handlebars.io._
 import com.github.jknack.handlebars.{Handlebars, Helper, Options}
 import com.github.jknack.handlebars.{Context => TplContext}
+import com.github.jknack.handlebars.{Template => RawTemplate}
 import java.io.File
 import java.util.{HashMap => JavaMap}
 
@@ -52,7 +53,7 @@ object Templater {
  * The handlebars implementation requires 'get*' style methods for data to
  * be useable. This wraps tuples with a 'get' method
  */
-object TupleWrapper {
+private object TupleWrapper {
 
     /** Wraps a tuple2 with getter methods */
     class Two[A, B] ( private val tuple: (A, B) ) {
@@ -86,35 +87,112 @@ object TupleWrapper {
 }
 
 /**
+ * A compiled template
+ */
+abstract class Template (
+    private val compiled: RawTemplate,
+    private val context: Map[String, Any]
+) {
+
+    /** Converts a value to a java equivalent */
+    private def convert ( value: Any ): Any = value match {
+        case list: Map[_, _] => JavaConversions.mapAsJavaMap(
+            list.foldLeft( Map[Any,Any]() ) {
+                (accum, pair) => accum + (pair._1 -> convert(pair._2))
+            }
+        )
+        case seq: Seq[_]
+            => JavaConversions.asJavaIterable( seq.map( convert _ ) )
+        case None => null
+        case Some(inner) => inner
+        case tuple: Tuple5[_, _, _, _, _] => new TupleWrapper.Five(tuple)
+        case tuple: Tuple4[_, _, _, _] => new TupleWrapper.Four(tuple)
+        case tuple: Tuple3[_, _, _] => new TupleWrapper.Three(tuple)
+        case tuple: Tuple2[_, _] => new TupleWrapper.Two(tuple)
+        case _ => value
+    }
+
+    /** Builds the context object for the template */
+    protected lazy val rawContext: TplContext = TplContext.newBuilder(
+        JavaConversions.mapAsJavaMap(
+            context.foldLeft( Map[String, Any]() ) {
+                (accum, pair) => accum + (pair._1 -> convert(pair._2))
+            }
+        )
+    ).build
+
+    /** Generates the content of this template */
+    def render: String
+
+    /** Embeds data in this template */
+    def data ( values: Map[String, Any] ): Template
+
+    /** Embeds data in this template */
+    def data ( values: (String, Any)* ): Template = data( Map(values:_*) )
+}
+
+/**
+ * A compiled template
+ */
+private class SimpleTemplate (
+    name: String,
+    compiled: RawTemplate,
+    context: Map[String, Any] = Map()
+) extends Template(compiled, context) {
+
+    /** {@inheritDoc} */
+    override def toString: String = "Template(%s)".format(name)
+
+    /** {@inheritDoc} */
+    override def render: String = compiled.apply( rawContext )
+
+    /** {@inheritDoc} */
+    override def data ( values: Map[String, Any] ): Template
+        = new SimpleTemplate( name, compiled, context ++ values )
+}
+
+/**
+ * A template wrapped by another template
+ */
+private class WrappedTemplate (
+    private val name: String,
+    private val wrapped: Template,
+    private val as: String,
+    private val compiled: RawTemplate,
+    private val context: Map[String, Any] = Map()
+) extends Template(compiled, context) {
+
+    /** {@inheritDoc} */
+    override def toString: String
+        = "Template(%s, %s -> %s)".format(name, as, wrapped)
+
+    /** {@inheritDoc} */
+    override def render: String
+        = wrapped.data( as -> compiled.apply(rawContext) ).render
+
+    /** {@inheritDoc} */
+    override def data ( values: Map[String, Any] ): Template
+        = new WrappedTemplate( name, wrapped, as, compiled, context ++ values )
+}
+
+/**
  * An interface for rendering templated data
  */
 trait Templater {
 
     /** Renders the given component type with the given data */
-    def apply ( template: String, data: Map[String, Any] ): String
+    def apply ( template: String ): Template
 
     /** Renders the given component type with the given data */
-    def apply ( template: String, data: (String, Any)* ): String
-        = apply( template, Map(data:_*) )
+    def apply ( template: String, values: Map[String, Any] ): Template
+        = apply( template ).data( values )
+
+    /** Renders the given component type with the given data */
+    def apply ( template: String, values: (String, Any)* ): Template
+        = apply( template ).data( values:_* )
 
     /** Generates a Templater that wraps other templated content */
-    def wrap(
-        template: String, as: String, data: Map[String, Any]
-    ): Templater = {
-        var outer = this
-
-        new Templater {
-            override def toString
-                = "Template(%s, %s, %s)".format(template, as, data)
-
-            override def apply (
-                innerTemplate: String, innerData: Map[String, Any]
-            ): String = outer.apply(
-                template,
-                data + ( as -> outer.apply(innerTemplate, innerData ++ data) )
-            )
-        }
-    }
+    def wrap( template: String, as: String, data: Map[String, Any] ): Templater
 
     /** Generates a Templater that wraps other templated content */
     def wrap( template: String, as: String, data: (String, Any)* ): Templater
@@ -122,18 +200,15 @@ trait Templater {
 }
 
 /**
- * Renders a template
+ * An interface for rendering templated data
  */
 class BaseTemplater (
     private val finder: Templater.Finder,
-    private val handlers: Map[String,(String) => String] = Map()
+    private val handlers: Map[String, (String) => String] = Map()
 ) extends Templater {
 
-    /** {@inheritDoc} */
-    override def toString = "Templater(%s, %s)".format(finder, handlers.keys)
-
     /** Templating engine */
-    private lazy val engine = {
+    private lazy val engine: Handlebars = {
         val engine = new Handlebars( finder )
         handlers.foreach( pair => {
             engine.registerHelper( pair._1, new Helper[Any] {
@@ -143,6 +218,9 @@ class BaseTemplater (
         })
         engine
     }
+
+    /** {@inheritDoc} */
+    override def toString = "Templater(%s, %s)".format(finder, handlers.keys)
 
     /** Registers a block handler */
     def handle( name: String, callback: (String) => String ): BaseTemplater
@@ -156,34 +234,36 @@ class BaseTemplater (
     ))
 
     /** {@inheritDoc} */
-    override def apply ( template: String, data: Map[String, Any] ): String = {
+    override def apply ( template: String ): Template
+        = new SimpleTemplate( template, engine.compile(template) )
 
-        // Converts a value to a java equivalent
-        def convert ( value: Any ): Any = value match {
-            case list: Map[_, _] => JavaConversions.mapAsJavaMap(
-                list.foldLeft( Map[Any,Any]() ) {
-                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
-                }
-            )
-            case seq: Seq[_]
-                => JavaConversions.asJavaIterable( seq.map( convert _ ) )
-            case None => null
-            case Some(inner) => inner
-            case tuple: Tuple5[_, _, _, _, _] => new TupleWrapper.Five(tuple)
-            case tuple: Tuple4[_, _, _, _] => new TupleWrapper.Four(tuple)
-            case tuple: Tuple3[_, _, _] => new TupleWrapper.Three(tuple)
-            case tuple: Tuple2[_, _] => new TupleWrapper.Two(tuple)
-            case _ => value
-        }
+    /** {@inheritDoc} */
+    override def wrap(
+        template: String, as: String, data: Map[String, Any]
+    ): Templater
+        = new WrappingTemplater(engine, apply(template).data(data), as, data)
+}
 
-        engine.compile( template ).apply( TplContext.newBuilder(
-            JavaConversions.mapAsJavaMap(
-                data.foldLeft( Map[String, Any]() ) {
-                    (accum, pair) => accum + (pair._1 -> convert(pair._2))
-                }
-            ) ).build
-        )
+/**
+ * A templater that will generate templates wrapped by other templates
+ */
+private class WrappingTemplater (
+    private val engine: Handlebars,
+    private val outer: Template,
+    private val as: String,
+    private val data: Map[String, Any]
+) extends Templater {
+
+    /** {@inheritDoc} */
+    override def apply ( template: String ): Template = {
+        new WrappedTemplate(template, outer, as, engine.compile(template), data)
     }
+
+    /** {@inheritDoc} */
+    override def wrap(
+        template: String, as: String, data: Map[String, Any]
+    ): Templater
+        = new WrappingTemplater(engine, apply(template).data(data), as, data)
 }
 
 
