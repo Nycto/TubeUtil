@@ -1,6 +1,7 @@
 package com.roundeights.tubeutil
 
 import scala.collection.JavaConversions
+import scala.io.Codec
 
 import com.github.jknack.handlebars.io._
 import com.github.jknack.handlebars.{Handlebars, Helper, Options}
@@ -8,6 +9,7 @@ import com.github.jknack.handlebars.{Context => TplContext}
 import com.github.jknack.handlebars.{Template => RawTemplate}
 import java.io.{File, Writer, StringWriter, OutputStream, OutputStreamWriter}
 import java.util.{HashMap => JavaMap}
+import com.roundeights.skene.Renderable
 
 /** @see Templater */
 object Templater {
@@ -92,7 +94,7 @@ private object TupleWrapper {
 abstract class Template (
     private val compiled: RawTemplate,
     private val context: Map[String, Any]
-) {
+) extends Renderable {
 
     /** Converts a value to a java equivalent */
     private def convert ( value: Any ): Any = value match {
@@ -124,9 +126,12 @@ abstract class Template (
     /** Renders into a Writer */
     def render( into: Writer ): Unit
 
-    /** Renders into an OutputStream */
-    def render( into: OutputStream ): Unit
-        = render( new OutputStreamWriter(into) )
+    /** {@inheritDoc} */
+    override def render ( output: OutputStream, codec: Codec ): Unit = {
+        val out = new OutputStreamWriter( output, codec.name )
+        render( out )
+        out.flush
+    }
 
     /** Generates the content of this template */
     def render: String = {

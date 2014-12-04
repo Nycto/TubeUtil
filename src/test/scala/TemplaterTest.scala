@@ -2,6 +2,8 @@ package com.roundeights.tubeutil
 
 import org.specs2.mutable._
 import java.util.Date
+import java.io.ByteArrayOutputStream
+import scala.io.Codec
 
 class TemplaterTest extends Specification {
 
@@ -93,6 +95,16 @@ class TemplaterTest extends Specification {
             tpl.wrap("outer", "middle", "start" -> "begin", "one" -> 1)
                 .apply("inner", "two" -> 2)
                 .render must_== "begin:1:2:end"
+        }
+
+        "Render into an output stream" in {
+            val out = new ByteArrayOutputStream
+
+            Templater(_ => "start:{{key}}:end")
+                .apply("tplName", "key" -> "one")
+                .render(out, Codec.UTF8)
+
+            out.toString must_== "start:one:end"
         }
     }
 }
