@@ -2,7 +2,7 @@ name := "TubeUtil"
 
 organization := "com.roundeights"
 
-version := "0.3"
+version := "0.3.1"
 
 scalaVersion := "2.11.7"
 
@@ -17,10 +17,10 @@ resolvers ++= Seq("RoundEights" at "http://maven.spikemark.net/roundeights")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "com.roundeights" %% "skene" % "0.2.0",
-    "com.roundeights" %% "scalon" % "0.2",
-    "com.roundeights" %% "hasher" % "1.2.0",
-    "com.roundeights" %% "isred" % "0.2" % "provided",
+    "com.roundeights" %% "skene" % "0.+",
+    "com.roundeights" %% "scalon" % "0.+",
+    "com.roundeights" %% "hasher" % "1.+",
+    "com.roundeights" %% "isred" % "0.+" % "provided",
     "com.github.jknack" % "handlebars" % "2.+" % "provided",
     "org.slf4j" % "slf4j-simple" % "1.+",
     "javax.servlet" % "javax.servlet-api" % "3.0.+" % "provided",
