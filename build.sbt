@@ -2,7 +2,7 @@ name := "TubeUtil"
 
 organization := "com.roundeights"
 
-version := "0.3.2"
+version := "0.4.0"
 
 scalaVersion := "2.11.7"
 
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
     "com.roundeights" %% "scalon" % "0.+",
     "com.roundeights" %% "hasher" % "1.+",
     "com.roundeights" %% "isred" % "0.+" % "provided",
-    "com.github.jknack" % "handlebars" % "2.+" % "provided",
+    "com.github.jknack" % "handlebars" % "4.+" % "provided",
     "org.slf4j" % "slf4j-simple" % "1.+",
     "javax.servlet" % "javax.servlet-api" % "3.0.+" % "provided",
     "org.specs2" %% "specs2" % "2.3.+" % "test"
