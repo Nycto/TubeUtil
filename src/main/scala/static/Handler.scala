@@ -17,7 +17,8 @@ object AssetHandler {
 class AssetHandler (
     private val finder: AssetFinder,
     private val ttl: Long = AssetHandler.defaultTtl,
-    private val forceCache: Boolean = false
+    private val forceCache: Boolean = false,
+    private val headers: Iterable[Response.Header] = Nil
 )(
     implicit context: ExecutionContext
 ) extends Handler {
@@ -70,6 +71,7 @@ class AssetHandler (
                     )
                 }
                 response.header(Response.Header.LastModified, reader.modified)
+                headers.foreach(response.header _)
                 reader.mimeType.map( mime => response.contentType(mime) )
                 response.content( reader.renderable )
                 response.done

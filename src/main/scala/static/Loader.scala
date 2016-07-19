@@ -86,14 +86,11 @@ class AssetLoader (
     /** Returns a companion Handler */
     def handler(
         forceCache: Boolean = false,
-        ttl: Long = AssetHandler.defaultTtl
+        ttl: Long = AssetHandler.defaultTtl,
+        headers: Iterable[Response.Header] = Nil
     ): Handler with Matcher = {
-        Matcher.and(
-            Matcher.method( Request.Method.GET ),
-            Matcher.path( prefix + "/::asset" )
-        ).handle(
-            new AssetHandler( finder, ttl, forceCache )
-        )
+        Matcher.and(Matcher.method(Request.Method.GET), Matcher.path(prefix + "/::asset"))
+            .handle(new AssetHandler(finder, ttl, forceCache, headers))
     }
 
     /** Returns a companion Handler */
