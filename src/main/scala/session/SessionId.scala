@@ -64,7 +64,6 @@ case class SessionId ( val sequenceId: String, val token: String ) {
     assert( SessionId.validate(sequenceId), "Invalid sequence id" )
     assert( SessionId.validate(token), "Invalid session token" )
 
-    /** {@inheritDoc} */
     override def toString = sequenceId + ":" + token
 }
 

@@ -75,7 +75,6 @@ class AssetLoader (
     /** Adds hashes to generated URLs */
     def addHashes: AssetLoader = set( hashes = true )
 
-    /** {@inheritDoc} */
     override def toString = "AssetLoader(%s, %s)".format(pathPrefix, finder)
 
     /** The prefix to attach to each asset */

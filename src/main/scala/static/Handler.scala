@@ -28,7 +28,6 @@ class AssetHandler (
         ( implicit context: ExecutionContext ) =
         this( AssetFinder(finder) )
 
-    /** {@inheritDoc} */
     override def toString = "AssetHandler(%s)".format(finder)
 
     /** Finds an asset */
@@ -90,7 +89,6 @@ class AssetHandler (
         case Some(asset) => serve( asset, request, response )
     }
 
-    /** {@inheritDoc} */
     override def handle(
         recover: Recover, request: Request, response: Response
     ): Unit = extract(request) match {

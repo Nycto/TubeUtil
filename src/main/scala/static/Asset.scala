@@ -76,19 +76,15 @@ class Asset( rawPath: String ) extends Equals {
     /** The cleaned up path */
     val path = Asset.canonicalize( rawPath )
 
-    /** {@inheritDoc} */
     override def toString = "Asset(%s)".format(path)
 
-    /** {@inheritDoc} */
     override def equals ( other: Any ): Boolean = other match {
         case asset: Asset if asset.canEqual(this) => path == asset.path
         case _ => false
     }
 
-    /** {@inheritDoc} */
     override def hashCode: Int = path.hashCode
 
-    /** {@inheritDoc} */
     override def canEqual( other: Any ): Boolean = other.isInstanceOf[Asset]
 
     /** Returns the path prefixed with a subdirectory */

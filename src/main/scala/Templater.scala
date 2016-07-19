@@ -126,7 +126,6 @@ abstract class Template (
     /** Renders into a Writer */
     def render( into: Writer ): Unit
 
-    /** {@inheritDoc} */
     override def render ( output: OutputStream, codec: Codec ): Unit = {
         val out = new OutputStreamWriter( output, codec.name )
         render( out )
@@ -156,14 +155,11 @@ private class SimpleTemplate (
     context: Map[String, Any] = Map()
 ) extends Template(compiled, context) {
 
-    /** {@inheritDoc} */
     override def toString: String = "Template(%s)".format(name)
 
-    /** {@inheritDoc} */
     override def render( into: Writer ): Unit
         = compiled.apply( rawContext, into )
 
-    /** {@inheritDoc} */
     override def data ( values: Map[String, Any] ): Template
         = new SimpleTemplate( name, compiled, context ++ values )
 }
@@ -179,15 +175,12 @@ private class WrappedTemplate (
     private val context: Map[String, Any] = Map()
 ) extends Template(compiled, context) {
 
-    /** {@inheritDoc} */
     override def toString: String
         = "Template(%s, %s -> %s)".format(name, as, wrapped)
 
-    /** {@inheritDoc} */
     override def render( into: Writer ): Unit
         = wrapped.data( as -> compiled.apply(rawContext) ).render(into)
 
-    /** {@inheritDoc} */
     override def data ( values: Map[String, Any] ): Template
         = new WrappedTemplate( name, wrapped, as, compiled, context ++ values )
 }
@@ -236,7 +229,6 @@ class BaseTemplater (
         engine
     }
 
-    /** {@inheritDoc} */
     override def toString = "Templater(%s, %s)".format(finder, handlers.keys)
 
     /** Registers a block handler */
@@ -250,11 +242,9 @@ class BaseTemplater (
         content.split(",").map( _.trim ).filter( _ != "" )
     ))
 
-    /** {@inheritDoc} */
     override def apply ( template: String ): Template
         = new SimpleTemplate( template, engine.compile(template) )
 
-    /** {@inheritDoc} */
     override def wrap(
         template: String, as: String, data: Map[String, Any]
     ): Templater
@@ -271,12 +261,10 @@ private class WrappingTemplater (
     private val data: Map[String, Any]
 ) extends Templater {
 
-    /** {@inheritDoc} */
     override def apply ( template: String ): Template = {
         new WrappedTemplate(template, outer, as, engine.compile(template), data)
     }
 
-    /** {@inheritDoc} */
     override def wrap(
         template: String, as: String, data: Map[String, Any]
     ): Templater

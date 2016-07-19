@@ -11,7 +11,6 @@ trait SessionReq {
     /** The request session */
     def session: Session
 
-    /** {@inheritDoc} */
     override def toString = "Session(%s)".format( session.sessionID )
 }
 
@@ -21,7 +20,6 @@ trait SessionIfExistsReq {
     /** The request session */
     def sessionIfExists: Option[Session]
 
-    /** {@inheritDoc} */
     override def toString = "SessionIfExists(%s)"
 }
 
@@ -53,7 +51,6 @@ class SessionProvider (
         implicit context: ExecutionContext
     ) = this( new RedisData( redis, prefix ), prototype, isSecure )
 
-    /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[SessionReq] ): Unit = {
         next.completeWith(
             SessionLoad.process(
@@ -98,7 +95,6 @@ class SessionIfExistsProvider (
         implicit context: ExecutionContext
     ) = this( new RedisData( redis, prefix ), prototype, isSecure )
 
-    /** {@inheritDoc} */
     override def build(
         bundle: Bundle, next: Promise[SessionIfExistsReq]
     ): Unit = {

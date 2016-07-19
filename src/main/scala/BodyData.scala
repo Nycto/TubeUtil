@@ -24,7 +24,6 @@ trait BodyData {
     /** The parsed data */
     def json: nObject
 
-    /** {@inheritDoc} */
     override def toString = "BodyData(%s)".format( json.toString )
 }
 
@@ -33,7 +32,6 @@ trait BodyData {
  */
 class BodyDataProvider extends Provider[BodyData] {
 
-    /** {@inheritDoc} */
     override def build( bundle: Bundle, next: Promise[BodyData] ): Unit = {
         val req = bundle.request
 

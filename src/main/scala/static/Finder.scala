@@ -26,11 +26,9 @@ object AssetFinder {
         /** Create a dir finder from a string path */
         def this ( root: String ) = this( new File( root ), false )
 
-        /** {@inheritDoc} */
         override def toString
             = "AssetFinder(%s%s)".format(root, if (isDebug) ", debug" else "")
 
-        /** {@inheritDoc} */
         override def apply(needle: Asset): Option[Asset.Reader] = {
             val path = new File( root, needle.path )
 
@@ -50,7 +48,6 @@ object AssetFinder {
             }
         }
 
-        /** {@inheritDoc} */
         override def debug = new DirFinder(root, true)
     }
 
@@ -71,12 +68,10 @@ object AssetFinder {
         /** The modification date of the jar file */
         private val jarModified = new Date( new File(jar).lastModified )
 
-        /** {@inheritDoc} */
         override def toString = "AssetFinder(%s:%s)".format(
             jar, subdir, if (isDebug) ", debug" else ""
         )
 
-        /** {@inheritDoc} */
         override def apply(needle: Asset): Option[Asset.Reader] = {
             val path = needle.inSubdir( subdir )
 
@@ -93,7 +88,6 @@ object AssetFinder {
             })
         }
 
-        /** {@inheritDoc} */
         override def debug = new JarFinder(clazz, subdir, true)
     }
 

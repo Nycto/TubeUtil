@@ -66,7 +66,6 @@ private[session] object SessionLoad {
         implicit context: ExecutionContext
     ) extends Access ( data, request, prototype, isSecure ) {
 
-        /** {@inheritDoc} */
         override def cookie( sessionId: SessionId ): Unit = {
             response.cookie( prototype.set(
                 value = sessionId.toString,
@@ -75,7 +74,6 @@ private[session] object SessionLoad {
             ) )
         }
 
-        /** {@inheritDoc} */
         override def create( why: String ): Future[Option[Session]] = {
             log.info( why )
             val sessInfo = SessionInfo.create( isSecure )
@@ -84,7 +82,6 @@ private[session] object SessionLoad {
                 .flatMap( _ => complete( sessInfo.sessionId ) )
         }
 
-        /** {@inheritDoc} */
         override def recreate (
             sessId: SessionId, why: String
         ) : Future[Option[Session]] = {
@@ -103,16 +100,13 @@ private[session] object SessionLoad {
         implicit context: ExecutionContext
     ) extends Access ( data, request, prototype, isSecure ) {
 
-        /** {@inheritDoc} */
         override def cookie( sessionId: SessionId ): Unit = {}
 
-        /** {@inheritDoc} */
         override def create( why: String ): Future[Option[Session]] = {
             log.info( why )
             Future.successful( None )
         }
 
-        /** {@inheritDoc} */
         override def recreate (
             sessId: SessionId, why: String
         ) : Future[Option[Session]] = {

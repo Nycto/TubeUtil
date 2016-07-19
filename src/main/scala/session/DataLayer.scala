@@ -45,30 +45,24 @@ extends DataLayer {
     private def valueKey ( id: String, name: String )
         = "%s-%s".format( sessionKey(id), name )
 
-    /** {@inheritDoc} */
     override def destroy ( sequence: String ): Future[Unit] = redis.eval(
         "return redis.call('del', unpack(redis.call('keys', ARGV[1])))",
         Nil, List( sessionKey(sequence) + "*" )
     ).map( _ => Unit )
 
-    /** {@inheritDoc} */
     override def create ( info: SessionInfo ): Future[Unit] = redis.setEx(
         sessionKey(info.sessionId.sequenceId), ttl, info.encode
     ).map( _ => Unit )
 
-    /** {@inheritDoc} */
     override def fetch ( sequence: String ): Future[Option[SessionInfo]]
         = redis.get( sessionKey(sequence) ).map( _.map( SessionInfo(_) ) )
 
-    /** {@inheritDoc} */
     override def get ( id: SessionId, key: String ): Future[Option[String]]
         = redis.get[String]( valueKey(id.toString, key) )
 
-    /** {@inheritDoc} */
     override def set ( id: SessionId, key: String, value: String ): Future[Unit]
         = redis.setEx( valueKey(id.toString, key), ttl, value ).map(_ => Unit)
 
-    /** {@inheritDoc} */
     override def unset ( id: SessionId, key: String ): Future[Unit]
         = redis.del(valueKey(id.toString, key) ).map(_ => Unit)
 }
