@@ -4,7 +4,7 @@ organization := "com.roundeights"
 
 version := "0.4.0"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 // append -deprecation to the options passed to the Scala compiler
 scalacOptions ++= Seq("-deprecation", "-feature")
