@@ -120,30 +120,6 @@ class Asset( rawPath: String ) extends Equals {
     }
 
     /** Returns the mime type of this asset based on the file extension */
-    def mimeType: Option[ContentType] = {
-        ext.flatMap( _.toLowerCase match {
-            case ".bmp"  => Some( ContentType.Bmp )
-            case ".css"  => Some( ContentType.Css )
-            case ".gif"  => Some( ContentType.Gif )
-            case ".htm"  => Some( ContentType.Html )
-            case ".html" => Some( ContentType.Html )
-            case ".ico"  => Some( ContentType.Icon )
-            case ".jpg"  => Some( ContentType.Jpeg )
-            case ".jpeg" => Some( ContentType.Jpeg )
-            case ".js"   => Some( ContentType.JavaScript )
-            case ".json" => Some( ContentType.Json )
-            case ".pdf"  => Some( ContentType.Pdf )
-            case ".png"  => Some( ContentType.Png )
-            case ".svg"  => Some( ContentType.Svg )
-            case ".swf"  => Some( ContentType.Swf )
-            case ".txt"  => Some( ContentType.Text )
-            case ".tiff" => Some( ContentType.Tiff )
-            case ".xml"  => Some( ContentType.Xml )
-            case ".xslt" => Some( ContentType.Xslt )
-            case ".zip"  => Some( ContentType.Zip )
-            case _ => None
-        })
-    }
-
+    def mimeType: Option[ContentType] = ext.flatMap(ContentType.byExt _)
 }
 
